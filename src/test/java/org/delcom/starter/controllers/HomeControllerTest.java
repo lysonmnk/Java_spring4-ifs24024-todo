@@ -1,21 +1,20 @@
 package org.delcom.starter.controllers;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.DisplayName;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 
-import static org.junit.jupiter.api.Assertions.*;
+@RestController
+public class HomeController {
 
-class HomeControllerUnitTest {
-    @Test
-    @DisplayName("Mengembalikan pesan selamat datang yang benar")
-    void hello_ShouldReturnWelcomeMessage() {
-        // Arrange
-        HomeController controller = new HomeController();
-
-        // Act
-        String result = controller.hello();
-
-        // Assert
-        assertEquals("Hay Abdullah, selamat datang di pengembangan aplikasi dengan Spring Boot!", result);
+    @GetMapping("/")
+    public String hello() {
+        return "Hay Abdullah, selamat datang di pengembangan aplikasi dengan Spring Boot!";
     }
+
+    @GetMapping("/hello/{name}")
+    public String sayHello(@PathVariable String name) {
+        return "Hello, " + name + "!";
+    }
+
 }

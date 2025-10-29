@@ -1,6 +1,10 @@
 # Spring v4.0 Starter Proyek
 
 ## Logs
+- Melakukan inisialisasi proyek 
+- Menambahkan method `sayHello()` pada Homecontroller
+= Menambahkan pengujian untuk method `sayHello()`
+
 
 ### 29-10-2025
 
