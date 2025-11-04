@@ -1,149 +1,115 @@
 package org.delcom.starter.controllers;
 
-import org.junit.jupiter.api.DisplayName;
+import java.util.Base64;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+public class HomeControllerTest {
 
-import static org.junit.jupiter.api.Assertions.*;
+    private HomeController controller;
 
-class HomeControllerTest {
-
-    private final HomeController controller = new HomeController();
-
-    @Test
-    @DisplayName("Should return the default welcome message")
-    void testWelcomeMessage() {
-        String result = controller.welcomeMessage();
-        assertEquals("Hay Abdullah, selamat datang di pengembangan aplikasi dengan Spring Boot!", result);
+    @BeforeEach
+    void setUp() {
+        controller = new HomeController();
     }
 
     @Test
-    @DisplayName("Should return a personalized greeting for a given name")
-    void testPersonalizedGreeting() {
-        String result = controller.personalizedGreeting("Gladys");
-        assertEquals("Hello, Gladys!", result);
-    }
-
-    // ======================
-    // 1️⃣ NIM Details - TES LENGKAP UNTUK SEMUA PRODI
-    // ======================
-    @Test
-    @DisplayName("Should parse Informatics NIM correctly")
-    void getNimDetails_ForInformatics_ReturnsCorrectInfo() {
-        String result = controller.getNimDetails("11S24055");
-        assertTrue(result.contains("Sarjana Informatika"));
+    void testInformasiNim_AllCases() {
+        String resultValid = controller.informasiNim("11S23001");
+        assertTrue(resultValid.contains("Sarjana Informatika") && resultValid.contains("Angkatan: 2023"));
+        assertTrue(controller.informasiNim("123").contains("minimal 8 karakter"));
+        assertTrue(controller.informasiNim(null).contains("minimal 8 karakter"));
+        assertTrue(controller.informasiNim("99X23123").contains("Unknown"));
     }
 
     @Test
-    @DisplayName("Should parse Information Systems NIM correctly")
-    void getNimDetails_ForInformationSystems_ReturnsCorrectInfo() {
-        String result = controller.getNimDetails("12S24055");
-        assertTrue(result.contains("Sarjana Sistem Informasi"));
+    void testPerolehanNilai_Valid() {
+        String data = "UAS|85|40\nUTS|75|30\nPA|90|20\nK|100|10";
+        String b64 = Base64.getEncoder().encodeToString(data.getBytes());
+        String result = controller.perolehanNilai(b64);
+        assertTrue(result.contains("84.50") && result.contains("Grade: B"));
     }
 
     @Test
-    @DisplayName("Should parse Electrical Engineering NIM correctly")
-    void getNimDetails_ForElectricalEngineering_ReturnsCorrectInfo() {
-        String result = controller.getNimDetails("14S24055");
-        assertTrue(result.contains("Sarjana Teknik Elektro"));
-    }
-
-    @Test
-    @DisplayName("Should parse Management Engineering NIM correctly")
-    void getNimDetails_ForManagementEngineering_ReturnsCorrectInfo() {
-        String result = controller.getNimDetails("21S24055");
-        assertTrue(result.contains("Sarjana Manajemen Rekayasa"));
+    void testPerolehanNilai_FullBranchCoverage() {
+        String data = "UAS|90|50\n\nTugas|80|0\nInvalid Line\nHanya|Dua\nNilai|abc|def\n---\nIni|tidak|dihitung";
+        String b64 = Base64.getEncoder().encodeToString(data.getBytes());
+        String result = controller.perolehanNilai(b64);
+        assertEquals("Nilai Akhir: 45.00 (Total Bobot: 50%)\nGrade: E", result);
     }
     
     @Test
-    @DisplayName("Should parse Metallurgical Engineering NIM correctly")
-    void getNimDetails_ForMetallurgicalEngineering_ReturnsCorrectInfo() {
-        String result = controller.getNimDetails("22S24055");
-        assertTrue(result.contains("Sarjana Teknik Metalurgi"));
+    void testPerolehanNilai_InvalidBase64() {
+        assertThrows(IllegalArgumentException.class, () -> controller.perolehanNilai("!@#"));
+    }
+    
+    @Test
+    void testPerolehanNilai_GradeA() {
+        String data = "Project|95|100";
+        String b64 = Base64.getEncoder().encodeToString(data.getBytes());
+        String result = controller.perolehanNilai(b64);
+        assertTrue(result.contains("95.00") && result.contains("Grade: A"));
     }
 
     @Test
-    @DisplayName("Should parse Bioprocess Engineering NIM correctly")
-    void getNimDetails_ForBioprocessEngineering_ReturnsCorrectInfo() {
-        String result = controller.getNimDetails("31S24055");
-        assertTrue(result.contains("Sarjana Teknik Bioproses"));
+    void testPerolehanNilai_GradeC() {
+        String data = "Kuis|70|100";
+        String b64 = Base64.getEncoder().encodeToString(data.getBytes());
+        String result = controller.perolehanNilai(b64);
+        assertTrue(result.contains("70.00") && result.contains("Grade: C"));
     }
 
     @Test
-    @DisplayName("Should parse D4 Software Engineering NIM correctly")
-    void getNimDetails_ForD4SoftwareEngineering_ReturnsCorrectInfo() {
-        String result = controller.getNimDetails("11424055");
-        assertTrue(result.contains("Diploma 4 Teknologi Rekasaya Perangkat Lunak"));
+    void testPerolehanNilai_GradeD() {
+        String data = "Praktikum|60|100";
+        String b64 = Base64.getEncoder().encodeToString(data.getBytes());
+        String result = controller.perolehanNilai(b64);
+        assertTrue(result.contains("60.00") && result.contains("Grade: D"));
     }
 
     @Test
-    @DisplayName("Should parse D3 Information Technology NIM correctly")
-    void getNimDetails_ForD3InformationTechnology_ReturnsCorrectInfo() {
-        String result = controller.getNimDetails("11324055");
-        assertTrue(result.contains("Diploma 3 Teknologi Informasi"));
+    void testPerbedaanL_AllCases() {
+        String b64Valid = Base64.getEncoder().encodeToString("UULL".getBytes());
+        assertTrue(controller.perbedaanL(b64Valid).contains("Perbedaan Jarak: 8"));
+        String b64InvalidChar = Base64.getEncoder().encodeToString("U R D L X Y Z".getBytes());
+        assertTrue(controller.perbedaanL(b64InvalidChar).contains("Perbedaan Jarak: 0"));
     }
 
     @Test
-    @DisplayName("Should parse D3 Computer Technology NIM correctly")
-    void getNimDetails_ForD3ComputerTechnology_ReturnsCorrectInfo() {
-        String result = controller.getNimDetails("13324055");
-        assertTrue(result.contains("Diploma 3 Teknologi Komputer"));
+    void testPerbedaanL_InvalidBase64() {
+        assertThrows(IllegalArgumentException.class, () -> controller.perbedaanL("!@#"));
     }
 
     @Test
-    @DisplayName("Should return 'Unknown Program' for an unrecognized NIM prefix")
-    void getNimDetails_ForUnknownPrefix_ReturnsUnknownProgram() {
-        String result = controller.getNimDetails("99X24055");
-        assertTrue(result.contains("Program Studi Tidak Dikenal"));
-    }
-
-
-    // ======================
-    // 2️⃣ Decode Grades
-    // ======================
-    @Test
-    @DisplayName("Should decode Base64 string and return the grades")
-    void decodeGradesFromBase64_ValidInput_ReturnsDecodedString() {
-        String originalGrades = "A=90 B=80 C=70";
-        String encodedGrades = Base64.getEncoder().encodeToString(originalGrades.getBytes(StandardCharsets.UTF_8));
-        String result = controller.decodeGradesFromBase64(encodedGrades);
-        assertTrue(result.contains("Perolehan Nilai: A=90 B=80 C=70"));
-    }
-
-
-    // ================================
-    // 3️⃣ Reversal Differences
-    // ================================
-    @Test
-    @DisplayName("Should return correct difference for a non-palindrome")
-    void findReversalDifferences_ForNonPalindrome_ReturnsCorrectOutput() {
-        String originalText = "mobil";
-        String encodedText = Base64.getEncoder().encodeToString(originalText.getBytes(StandardCharsets.UTF_8));
-        String result = controller.findReversalDifferences(encodedText);
-        assertTrue(result.contains("Perbedaannya: moil"));
+    void testPalingTer_Valid() {
+        String text = "terbaik terbaik termahal";
+        String b64 = Base64.getEncoder().encodeToString(text.getBytes());
+        assertTrue(controller.palingTer(b64).contains("'terbaik' (muncul 2 kali)"));
     }
 
     @Test
-    @DisplayName("Should return an empty difference for a palindrome")
-    void findReversalDifferences_ForPalindrome_ReturnsEmptyDifference() {
-        String originalText = "kasurrusak";
-        String encodedText = Base64.getEncoder().encodeToString(originalText.getBytes(StandardCharsets.UTF_8));
-        String result = controller.findReversalDifferences(encodedText);
-        assertTrue(result.contains("Perbedaannya: "));
-    }
+    void testPalingTer_FullBranchCoverage() {
+        // Kasus: Tidak ada kata "ter"
+        String noTer = Base64.getEncoder().encodeToString("hello world".getBytes());
+        assertEquals("Tidak ditemukan kata yang berawalan 'ter'.", controller.palingTer(noTer));
+        
+        // --- PERBAIKAN UNTUK COVERAGE ---
+        // Kasus: Input yang menghasilkan string kosong ("") setelah di-split oleh "\\W+"
+        // Ini akan menguji cabang !word.isEmpty() secara eksplisit.
+        String emptyWordCase = Base64.getEncoder().encodeToString("!tercepat terlambat".getBytes());
+        assertTrue(controller.palingTer(emptyWordCase).contains("'tercepat' (muncul 1 kali)"));
 
-    // ==============================
-    // 4️⃣ Shortest and Longest Word
-    // ==============================
+        // Kasus: Beberapa kata "ter" dengan berbagai pemisah untuk memastikan frekuensi benar
+        String multiple = "terbaik terendah terbaik terburuk terendah terbaik";
+        String b64Multiple = Base64.getEncoder().encodeToString(multiple.getBytes());
+        assertTrue(controller.palingTer(b64Multiple).contains("'terbaik' (muncul 3 kali)"));
+    }
+    
     @Test
-    @DisplayName("Should find the correct shortest and longest words in a sentence")
-    void findShortestAndLongestWords_ValidSentence_ReturnsCorrectWords() {
-        String sentence = "Saya sedang belajar spring boot oop";
-        String encodedSentence = Base64.getEncoder().encodeToString(sentence.getBytes(StandardCharsets.UTF_8));
-        String result = controller.findShortestAndLongestWords(encodedSentence);
-        assertTrue(result.contains("Paling Pendek: oop"));
-        assertTrue(result.contains("Paling Panjang: belajar"));
+    void testPalingTer_InvalidBase64() {
+        assertThrows(IllegalArgumentException.class, () -> controller.palingTer("!@#"));
     }
 }
